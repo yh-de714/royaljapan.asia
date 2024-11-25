@@ -1,0 +1,35 @@
+[
+    {
+        "condition": "New",
+        "Points": {
+            "PointsNumber": 21622
+        },
+        "LandedPrice": {
+            "CurrencyCode": "JPY",
+            "Amount": 61538.0
+        },
+        "Shipping": {
+            "CurrencyCode": "JPY",
+            "Amount": 0.0
+        },
+        "ListingPrice": {
+            "CurrencyCode": "JPY",
+            "Amount": 83160.0
+        }
+    },
+    {
+        "condition": "Used",
+        "LandedPrice": {
+            "CurrencyCode": "JPY",
+            "Amount": 50248.0
+        },
+        "Shipping": {
+            "CurrencyCode": "JPY",
+            "Amount": 770.0
+        },
+        "ListingPrice": {
+            "CurrencyCode": "JPY",
+            "Amount": 49478.0
+        }
+    }
+]

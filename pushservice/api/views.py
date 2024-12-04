@@ -1444,7 +1444,7 @@ class AutoUdateView(APIView):
                         'SellerCode': "",
                         'Status': "3"
                     }
-                response = requests.get('https://api.qoo10.jp/GMKT.INC.Front.QAPIService/ebayjapan.qapi', params)
+                    response = requests.get('https://api.qoo10.jp/GMKT.INC.Front.QAPIService/ebayjapan.qapi', params)
                 time.sleep(0.3)
                 amzn_get_access_token_entrypoint = "https://api.amazon.com/auth/o2/token"
                 amzn_marketplace_id = "A1VC38T7YXB528"
@@ -1783,6 +1783,7 @@ class AutoUdateView(APIView):
                         'ItemCode': item_code,
                     }
                     item.code = item_code
+                    item.created_at = timezone.now()
                     item.save()
                     if(len(img_urls) > 1):
                         img_urls.pop(0)
@@ -1793,8 +1794,6 @@ class AutoUdateView(APIView):
                     response = requests.get('https://api.qoo10.jp/GMKT.INC.Front.QAPIService/ebayjapan.qapi', params)
             except Exception as e:
                 print("total", str(e))
-            item.created_at = timezone.now()
-            item.save()
         return Response(True, status=status.HTTP_200_OK)
     
         

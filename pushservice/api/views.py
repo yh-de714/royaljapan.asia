@@ -440,7 +440,7 @@ class ExportProductView(APIView) :
                 product['description'] += feature['value'] + ", "
             product['description'] = product['description'][:-2]
         except Exception as e:
-            print(str(e))
+            print("error_bullet_point", str(e))
 
         ng_descriptions = request.user.ng_descriptions
         ng_description_arr = [elem.strip(' ') for elem in ng_descriptions.split('\n')]
@@ -701,7 +701,23 @@ class ExportProductView(APIView) :
                             time.sleep(0.3)
                         except Exception:
                             print(str(Exception))
-           
+            print("reseving")
+            yahoo_publish_reserve_entrypoint = "https://circus.shopping.yahooapis.jp/ShoppingWebService/V1/reservePublish"
+            yahoo_yahoo_publish_reserve_header = {
+                "Authorization": "Bearer " + yahoo_access_token,
+                "Content-Type": "application/json"
+            }
+            resolve_data = {
+                'seller_id': yahoo_seller_id,
+                'mode':1
+            }
+            try:
+                response = requests.post(yahoo_publish_reserve_entrypoint, headers=yahoo_yahoo_publish_reserve_header, data=resolve_data)
+                print(response)
+                print("reserved")
+            except Exception:
+                print("error while reserved")
+                print(str(Exception))
         
         elif store_type == "Qoo10":
             db_user.qoo10_register_time = timezone.now()
@@ -1392,7 +1408,9 @@ class AutoUdateView(APIView):
         for product in products:
             try:
                 item = Product.objects.filter(Q(id = product['id'])).first()
+                print("active store", active_store)
                 if active_store == "Yahoo":
+                    print("deleting yahoo")
                     yahoo_client_id = user.yahoo_client_id
                     yahoo_secret = user.yahoo_client_secret
                     yahoo_refresh_token = user.yahoo_refresh_token
@@ -1434,7 +1452,9 @@ class AutoUdateView(APIView):
                         except:
                             user.yahoo_enable = False
                             user.save()
+                            return Response(False, status=status.HTTP_400_BAD_REQUEST)
                 else:
+                    print("deleting Qoo10")
                     params = {
                         'key': user.qoo10_sak,
                         'v': '1.0',
@@ -1468,10 +1488,11 @@ class AutoUdateView(APIView):
                 amzn_product_data_byte = response_amzn_product.content.decode().replace("'", '"')
                 amzn_product_data_json = json.loads(amzn_product_data_byte)
                 time.sleep(0.3)
-                print("Get amazon product data")
+                print("Get amazon product data for update")
                 deleted = False
                 try:
                     if amzn_product_data_json['errors'][0]["code"] == "Unauthorized":
+                        print(amzn_product_data_json['errors'][0]["code"])
                         amzn_get_access_token_credentials = base64.b64encode(f"{amzn_client_id}:{amzn_client_secret}".encode()).decode()
                         amzn_get_access_token_header = {
                             "Content-Type": "application/x-www-form-urlencoded",
@@ -1482,6 +1503,8 @@ class AutoUdateView(APIView):
                             "refresh_token": amzn_refresh_token
                         }
                         try:
+                            
+                            print("Getting amazon access token for updating")
                             amzn_get_access_token_response = requests.post(amzn_get_access_token_entrypoint, headers=amzn_get_access_token_header, data=amzn_get_access_token_data)
                             amzn_access_token = amzn_get_access_token_response.json()["access_token"]
                             print("Get amazon access token for updating")
@@ -1493,11 +1516,12 @@ class AutoUdateView(APIView):
                                 "Content-Type": "application/x-www-form-urlencoded",
                                 "x-amz-access-token": amzn_access_token,
                             }
+                            print(user.username, "Geting amazon product data for update")
                             response_amzn_product = requests.get(amzn_product_entrypoint + product['asin'] + "?marketplaceIds="+amzn_marketplace_id+"&includedData=attributes,dimensions,identifiers,images,productTypes,salesRanks,summaries,relationships", headers=amzn_get_product_data_header)
                             amzn_product_data_byte = response_amzn_product.content.decode().replace("'", '"')
                             amzn_product_data_json = json.loads(amzn_product_data_byte)
-                            print(user.username, "Get amazon product data for update")
-                            time.sleep(0.3)
+                            print(user.username, "Geted amazon product data for update")
+                            time.sleep(1)
                         except:
                             print('amazon app error for updating')
                             user.amazon_enable = False
@@ -1563,7 +1587,7 @@ class AutoUdateView(APIView):
                         product['description'] += feature['value'] + ", "
                     product['description'] = product['description'][:-2]
                 except Exception as e:
-                    print(str(e))
+                    print("error_bullet_point",str(e))
 
                 ng_descriptions = user.ng_descriptions
                 ng_description_arr = [elem.strip(' ') for elem in ng_descriptions.split('\n')]
@@ -1644,7 +1668,10 @@ class AutoUdateView(APIView):
                     continue
                 item.price = real_price
                 item.save()
+                print("registering Yahoo11")
+                time.sleep(0.3)
                 if active_store == "Yahoo":
+                    print("registering entrypoint")
                     user.yahoo_update_time = timezone.now()
                     user.save()
                     yahoo_client_id = user.yahoo_client_id
@@ -1657,11 +1684,10 @@ class AutoUdateView(APIView):
                     yahoo_product_category = "44087"
                     yahoo_image_register_entrypoint = 'https://circus.shopping.yahooapis.jp/ShoppingWebService/V1/uploadItemImage?seller_id=' + yahoo_seller_id
                     yahoo_inventory_set_entrypoint = "https://circus.shopping.yahooapis.jp/ShoppingWebService/V1/setStock"
-                    real_path = item.real_path
+                    real_path =  (item.path[:20]) if len(item.path) > 20 else item.path
                     if len(real_path) == 20:
                         if real_path[19] == ":":
                             real_path = real_path[:19]
-
                     data_product = {
                         'seller_id': yahoo_seller_id,
                         'item_code': product['item_code'],
@@ -1684,20 +1710,19 @@ class AutoUdateView(APIView):
                             "Authorization": "Bearer " + yahoo_access_token,
                             "Content-Type": "application/x-www-form-urlencoded",
                     }
+                    print("registering entrypoint")
                     response = requests.post(yahoo_product_register_entrypoint, headers=yahoo_product_register_header, data=data_product)
-                
-                    
+                    time.sleep(0.3)
                     yahoo_image_upload_header = {
                         "Authorization": "Bearer " + yahoo_access_token
                     }
                     try:
-                        response = requests.post(yahoo_inventory_set_entrypoint, headers=yahoo_product_register_header, data=data_inventory)
-                        print("updating yahoo inventory amount")
-                    
+                        response = requests.post(yahoo_inventory_set_entrypoint, headers=yahoo_product_register_header, data=data_inventory)                   
                         time.sleep(0.3)
                     except Exception:
-                        print(str(Exception))
+                        print("error while updating yahoo inventory amount", str(Exception))
                     img_urls = product['img_urls']
+                    print(img_urls)
                     try:
                         img_file = requests.get(img_urls[0])
                         img_files = {"file": (product['item_code'] +".jpg", img_file.content, "image/jpeg", {'Expires': '0'} )}
@@ -1709,16 +1734,38 @@ class AutoUdateView(APIView):
                         img_urls.pop(0)
                         for idx, img_url in enumerate(img_urls):
                             try:
+                                print(img_urls)
                                 img_file_src = requests.get(img_url)
                                 real_idx = idx + 1
                                 files = {"file": (product['item_code'] + "_" + str(real_idx) +".jpg", img_file_src.content, "image/jpeg", {'Expires': '0'} )}
                                 requests.post(yahoo_image_register_entrypoint, headers=yahoo_image_upload_header, files=files)
                                 time.sleep(0.3)
                             except Exception:
-                                print(str(Exception))
+                                print("error while update image",str(Exception))
+
+                    print("reseving")
+                    yahoo_publish_reserve_entrypoint = "https://circus.shopping.yahooapis.jp/ShoppingWebService/V1/reservePublish"
+                    yahoo_yahoo_publish_reserve_header = {
+                        "Authorization": "Bearer " + yahoo_access_token,
+                        "Content-Type": "application/json"
+                    }
+                    resolve_data = {
+                        'seller_id': yahoo_seller_id,
+                        'mode':1
+                    }
+                    try:
+                        response = requests.post(yahoo_publish_reserve_entrypoint, headers=yahoo_yahoo_publish_reserve_header, data=resolve_data)
+                        print(response)
+                        print("reserved")
+                    except Exception:
+                        print("error while reserved")
+                        print(str(Exception))
+
                     item.created_at = timezone.now()
                     item.save()
+                    print("updated")
                 else:
+                    print("registering Qoo")
                     user.qoo10_update_time = timezone.now()
                     user.save()
                     img_urls = product['img_urls']
@@ -1795,5 +1842,3 @@ class AutoUdateView(APIView):
             except Exception as e:
                 print("total", str(e))
         return Response(True, status=status.HTTP_200_OK)
-    
-        

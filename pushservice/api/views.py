@@ -1404,7 +1404,7 @@ class AutoUdateView(APIView):
     def post(self, request, id):        
         user = User.objects.filter(id=id).first()
         active_store = request.data['active_store']
-        products = Product.objects.filter(Q(product_user=user) & Q(store_type=active_store)).order_by('-created_at').values()
+        products = Product.objects.filter(Q(product_user=user) & Q(store_type=active_store)).order_by('created_at').values()
         for product in products:
             try:
                 item = Product.objects.filter(Q(id = product['id'])).first()

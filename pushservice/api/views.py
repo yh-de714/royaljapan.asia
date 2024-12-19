@@ -161,7 +161,7 @@ class AllUsersView(APIView):
     def get(self, request):
         keyword = request.GET.get('keyword')
         if(keyword==""):
-            allusers = User.objects.all().values()
+            allusers = User.objects.all().values('id','username', 'name', 'email', 'amazon_enable', 'yahoo_store_name', 'yahoo_store_id', 'yahoo_enable', 'qoo10_enable', 'qoo10_username', 'qoo10_store_name', 'yahoo_auto', 'qoo10_auto')
             for user in allusers:
                 item = User.objects.filter(Q(id=user['id'])).first()
                 item.seller_count = 2

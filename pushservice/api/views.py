@@ -549,6 +549,10 @@ class ExportProductView(APIView) :
                 'success': False,
             }
             return Response(data=res_data, status=status.HTTP_400_BAD_REQUEST)
+        shipping_now = False
+        for eligibleoffer in amzn_price_data_json['payload']['Summary']['BuyBoxEligibleOffers']:
+                if eligibleoffer["fulfillmentChannel"] == "Amazon":
+                    shipping_now = True
         if (origin_price < 1000 or origin_price > 30000) :
             res_data = {
                 'err_type': 'Price',
@@ -610,8 +614,8 @@ class ExportProductView(APIView) :
                 'path': real_path,
                 'name': (product['name'][:47] + '...') if len(product['name']) > 50 else product['name'],
                 'product_category': yahoo_product_category,
-                'original_price': origin_price,
-                'price': real_price,
+                'original_price': origin_price if shipping_now else 0,
+                'price': real_price if shipping_now else 0,
                 'caption': (product['description'][:4997] + '...') if len(product['description']) > 5000 else product['description'],
                 # 'abstract': (product['abstract'][:497] + '...') if len(product['abstract']) > 500 else product['abstract'],
                 'explanation': (product['description'][:497] + '...') if len(product['description']) > 500 else product['description'],
@@ -619,7 +623,7 @@ class ExportProductView(APIView) :
             data_inventory = {
                 'seller_id': yahoo_seller_id,
                 'item_code': product['item_code'],
-                'quantity': "1" if product['stock'] else "0",
+                'quantity': "1" if shipping_now else "0",
             }
 
             yahoo_product_register_header = {
@@ -753,9 +757,9 @@ class ExportProductView(APIView) :
                     'AdditionalOption': '',
                     'ItemType': '',
                     'option_info': '',
-                    'RetailPrice': real_price,
-                    'ItemPrice': real_price,
-                    'ItemQty': 1 if product['stock'] else 0,
+                    'RetailPrice': real_price if shipping_now else 0,
+                    'ItemPrice': real_price if shipping_now else 0,
+                    'ItemQty': 1 if shipping_now else 0,
                     'ExpireDate': '',
                     'ShippingNo': '',
                     'AvailableDateType': '0',
@@ -776,7 +780,7 @@ class ExportProductView(APIView) :
                 except Exception as e:
                     print("")
                 if response.json()["ResultCode"] != 0:
-                    print(response)
+                    print(response.json())
                     return Response(None, status=status.HTTP_400_BAD_REQUEST)
                     
                 time.sleep(0.3)
@@ -804,9 +808,9 @@ class ExportProductView(APIView) :
                     'method': 'ItemsOrder.SetGoodsPriceQty',
                     'ItemCode': item_code,
                     'SellerCode': '',
-                    'Price': (str)(real_price),
+                    'Price': (str)(real_price) if shipping_now else 0,
                     'TaxRate': '0',
-                    'Qty': "1" if product['stock'] else "0",
+                    'Qty': "1" if shipping_now else "0",
                     'ExpireDate': '',
                 }
                 response = requests.get('https://api.qoo10.jp/GMKT.INC.Front.QAPIService/ebayjapan.qapi', params)
@@ -835,14 +839,22 @@ class ExportProductView(APIView) :
         Product.objects.create(
             product_user = request.user,
             amznurl = "https://www.amazon.co.jp/dp/" + product['asin'] + "?language=ja_JP",
-            price = real_price,
+            price = real_price if shipping_now else 0,
             store = reg_store,
             store_type = store_type,
             code = item_code,
             path=product['path'],
             second_sub_cat = product['second_sub_cat']
         )
-        return Response(True, status=status.HTTP_200_OK)
+        if shipping_now:
+            return Response(True, status=status.HTTP_200_OK)
+        else:
+            res_data = {
+                'err_type': 'Shipping',
+                'detail': 'Shipping Error',
+                'success': False,
+            }
+            return Response(data=res_data, status=status.HTTP_400_BAD_REQUEST)
     
     def put(self, request):
         try:

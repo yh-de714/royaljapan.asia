@@ -535,11 +535,20 @@ class ExportProductView(APIView) :
         img_urls = product['img_urls']
         
         origin_price = 0
+        shipping_fee = True
         try:
             for offer in amzn_price_data_json['payload']['Summary']['BuyBoxPrices']:
                 if offer["condition"] == "New" and origin_price == 0:
-                    origin_price = (int)(offer['ListingPrice']['Amount'])
-
+                    if (int)(offer['Shipping']['Amount']) == 0:
+                        shipping_fee = False
+                        origin_price = (int)(offer['ListingPrice']['Amount'])
+            if shipping_fee:
+                res_data = {
+                    'err_type': 'ShippingFee',
+                    'detail': 'ShippingFee',
+                    'success': False,
+                }
+                return Response(data=res_data, status=status.HTTP_400_BAD_REQUEST)
             print(origin_price, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         except Exception as e:
             print(str(e))

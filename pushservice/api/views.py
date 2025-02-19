@@ -616,19 +616,7 @@ class ExportProductView(APIView) :
             if len(real_path) == 20:
                 if real_path[19] == ":":
                     real_path = real_path[:19]
-            params ={}
-            params['appid'] = yahoo_client_id
-            params['category_id'] = 1
-            YahooItemSearchURL = "https://shopping.yahooapis.jp/ShoppingWebService/V1/json/categorySearch"
-            response = requests.get(YahooItemSearchURL, params)
-            res = json.loads(response.text)
-            f = open("yahoocategory.txt", "a")
-            for index in list(res['ResultSet']['0']['Result']['Categories']['Children'].keys()):
-                if index.isdecimal():
-                    item = res['ResultSet']['0']['Result']['Categories']['Children'][index]
-                    print(item['Id'])
-                    print(item['Title'])
-            f.close()
+        
             data_product = {
                 'seller_id': yahoo_seller_id,
                 'item_code': product['item_code'],

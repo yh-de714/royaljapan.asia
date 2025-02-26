@@ -688,7 +688,12 @@ class ExportProductView(APIView) :
                 yahoo_response_data_byte = response.content.decode().replace("'", '"')
                 time.sleep(0.3)
             except Exception:
-                print(str(Exception))
+                res_data = {
+                        'err_type': 'API',
+                        'detail': 'Yahoo',
+                        'success': False,
+                    }
+                return Response(data=res_data, status=status.HTTP_400_BAD_REQUEST)
             
             if duplicate_product:
                 print("")
@@ -714,7 +719,6 @@ class ExportProductView(APIView) :
                             time.sleep(0.3)
                         except Exception:
                             print(str(Exception))
-            print("reseving")
             yahoo_publish_reserve_entrypoint = "https://circus.shopping.yahooapis.jp/ShoppingWebService/V1/reservePublish"
             yahoo_yahoo_publish_reserve_header = {
                 "Authorization": "Bearer " + yahoo_access_token,
@@ -726,8 +730,6 @@ class ExportProductView(APIView) :
             }
             try:
                 response = requests.post(yahoo_publish_reserve_entrypoint, headers=yahoo_yahoo_publish_reserve_header, data=resolve_data)
-                print(response)
-                print("reserved")
             except Exception:
                 print("error while reserved")
                 print(str(Exception))
@@ -845,6 +847,7 @@ class ExportProductView(APIView) :
             duplicate_product.created_at = timezone.now()
             duplicate_product.save()
             return Response({'detail': "Duplicate"}, status=status.HTTP_200_OK)
+        time.sleep(1.5)
         Product.objects.create(
             product_user = request.user,
             amznurl = "https://www.amazon.co.jp/dp/" + product['asin'] + "?language=ja_JP",

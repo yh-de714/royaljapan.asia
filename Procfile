@@ -1,1 +1,0 @@
-web: gunicorn Eiyoo.wsgi --log-file -

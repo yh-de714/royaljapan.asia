@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="22" viewBox="0 0 20 22">
+  <g id="home" transform="translate(1 1)">
+    <path id="Path_435" data-name="Path 435" d="M3,9l9-7,9,7V20a2,2,0,0,1-2,2H5a2,2,0,0,1-2-2Z" transform="translate(-3 -2)" fill="none" stroke="#7764e4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+    <path id="Path_436" data-name="Path 436" d="M9,22V12h6V22" transform="translate(-3 -2)" fill="none" stroke="#7764e4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  </g>
+</svg>

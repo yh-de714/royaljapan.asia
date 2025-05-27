@@ -137,7 +137,7 @@ TEMPLATES = [
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.mailgun.org'
 EMAIL_HOST_USER = 'postmaster@royaljapan.asia'
-EMAIL_HOST_PASSWORD = '114cc6090c818f8f1390a556b95bcb4b-5dcb5e36-b502ff1e'
+EMAIL_HOST_PASSWORD = ''
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'RoyalJapan公式通販サイト <no-reply@royaljapan.asia>'
@@ -214,6 +214,4 @@ USE_L10N = True
 
 USE_TZ = True
 
-TWILIO_ACCOUNT_SID = 'AC8b1f17882a26c241fc831363df85f653'
-TWILIO_AUTH_TOKEN = '69e141f0ccbc30bd4ded524f5d4dbf25'
-TWILIO_PHONE_NUMBER = '+12542774705'
+
